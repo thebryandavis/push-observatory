@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Push Observatory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#f3efe6; --ink:#1c2733; --rule:#d9d2c3; --rule2:#e6dfd0; --muted:#7a8290;
+    --breaking:#c8102e; --standard:#2a78d6; --promo:#e87ba4; --rail:#efe9dc;
+    --card:#faf7f0; --grid-line:#e7e1d3; --good:#1baf7a; --warn:#b8860b;
+    --focus-outlet:#a2571a;
+    --font-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-head: 'IBM Plex Sans Condensed', var(--font-ui);
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--paper)}
+  body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 var(--font-ui);position:relative}
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(var(--grid-line) 1px, transparent 1px),
+                      linear-gradient(90deg,var(--grid-line) 1px, transparent 1px);
+    background-size:24px 24px;opacity:.45;
+  }
+  a{color:var(--ink)} a:hover{color:var(--breaking)}
+  topbar,nav,.controls,main,.drawer-bg{position:relative;z-index:1}
+  topbar{display:flex;align-items:center;gap:18px;padding:18px 28px 12px;border-bottom:2px solid var(--ink);
+         flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  h1{margin:0;font:700 26px/1 var(--font-head);letter-spacing:.02em;text-transform:uppercase}
+  .tagline{color:var(--muted);font:12.5px/1.4 var(--font-mono);letter-spacing:.02em}
+  .sub{color:var(--muted);font:11.5px var(--font-mono);margin-top:2px;letter-spacing:.02em}
+  .topbar-spacer{flex:1}
+  .lamp-row{display:flex;align-items:center;gap:8px;font:12.5px var(--font-mono);color:var(--ink);letter-spacing:.01em}
+  .lamp{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--good);
+        box-shadow:0 0 0 3px rgba(27,175,122,.18)}
+  .lamp.down{background:var(--breaking);box-shadow:0 0 0 3px rgba(200,16,46,.18)}
+  .lamp.stale{background:var(--warn);box-shadow:0 0 0 3px rgba(184,134,11,.18)}
+  .pill-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;
+       color:var(--ink);border:1.5px solid var(--ink);border-radius:3px;padding:6px 12px;
+       font:600 12.5px/1 var(--font-ui);cursor:pointer;white-space:nowrap}
+  .pill-btn:hover{background:rgba(28,39,51,.06)}
+  .pill-btn.demo{color:var(--ink);border-color:var(--ink)}
+  .pill-btn .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+  .pop{position:absolute;z-index:80;background:var(--card);border:1.5px solid var(--ink);border-radius:4px;
+       box-shadow:0 16px 40px rgba(28,39,51,.25);padding:16px 18px;width:360px;font-size:12.8px;
+       color:var(--muted);display:none;line-height:1.55}
+  .pop.on{display:block}
+  .pop h3{margin:0 0 8px;color:var(--ink);font:600 14px var(--font-head);text-transform:uppercase;letter-spacing:.02em}
+  .pop ul{margin:6px 0;padding-left:18px}
+  .pop b{color:var(--ink)}
+  .drawer-bg{position:fixed;inset:0;background:rgba(28,39,51,.45);z-index:90;display:none}
+  .drawer-bg.on{display:block}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,92vw);background:var(--paper);
+          border-left:2px solid var(--ink);z-index:91;padding:24px 26px;overflow-y:auto}
+  .drawer h2{margin:0 0 4px;font:700 22px var(--font-head);text-transform:uppercase;letter-spacing:.01em}
+  .drawer h3{margin:22px 0 8px;font:600 12px var(--font-mono);color:var(--muted);
+             text-transform:uppercase;letter-spacing:.06em}
+  .drawer p, .drawer li{color:var(--ink);font-size:13px;line-height:1.6}
+  .drawer ul{margin:0;padding-left:20px}
+  .drawer .close{position:absolute;top:20px;right:22px;background:none;border:0;color:var(--muted);
+                 cursor:pointer;font-size:22px;line-height:1}
+  .drawer .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 4px;font:11.5px var(--font-mono)}
+  .drawer .flow span{background:var(--card);border:1px solid var(--rule);border-radius:3px;
+                      padding:4px 9px;color:var(--ink)}
+  .drawer .flow i{color:var(--muted);font-style:normal}
+  nav{display:flex;gap:2px;padding:12px 28px 0;flex-wrap:wrap;border-bottom:1.5px solid var(--rule)}
+  nav button{background:none;border:0;color:var(--muted);padding:9px 14px;cursor:pointer;
+             font:600 13px var(--font-ui);border-bottom:2.5px solid transparent}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--ink);border-bottom-color:var(--breaking)}
+  .controls{display:flex;gap:14px;align-items:center;padding:11px 28px;color:var(--muted);
+            font:12.5px var(--font-mono);flex-wrap:wrap;border-bottom:1px solid var(--rule)}
+  select,label{font-size:12.5px;font-family:var(--font-ui)}
+  select{background:var(--card);color:var(--ink);border:1px solid var(--rule);
+         border-radius:3px;padding:4px 8px;font-family:var(--font-mono)}
+  main{padding:20px 28px 60px}
+  .view{display:none}.view.on{display:block}
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:4px;
+        padding:18px 20px;margin-bottom:16px;overflow:hidden}
+  .card h2{margin:0 0 4px;font:600 20px var(--font-head)}
+  .card p.note{margin:0 0 14px;color:var(--muted);font-size:12.5px;max-width:72ch}
+  .empty{padding:40px 20px;text-align:center;color:var(--muted)}
+  .empty code{background:var(--rail);padding:2px 6px;border-radius:3px;color:var(--ink);font-family:var(--font-mono)}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font:12.5px var(--font-mono)}
+  th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--rule2);white-space:nowrap}
+  th{color:var(--muted);font:600 11px var(--font-ui);text-transform:uppercase;letter-spacing:.06em}
+  tbody tr:hover{background:var(--rail)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .focus-outlet{color:var(--focus-outlet);font-weight:600}
+  .bar{height:8px;border-radius:2px;background:var(--standard);display:inline-block;vertical-align:middle}
+  .chip{display:inline-block;padding:2px 7px;border-radius:3px;font:11px var(--font-mono);border:1px solid var(--rule)}
+  .chip.breaking{color:var(--breaking);border-color:var(--breaking)}
+  .chip.promotional{color:var(--promo);border-color:var(--promo)}
+  .chip.standard{color:var(--muted)}
+  .chip.syn{color:var(--warn);border-color:var(--warn);background:#f7ecd0}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+  .tiles{display:flex;gap:24px;flex-wrap:wrap}
+  .tile{flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px;
+        border-top:1.5px solid var(--ink);padding-top:8px}
+  .tile .k{font:11px var(--font-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .tile .v{font:700 30px/1.1 var(--font-head)}
+  .tile .d{font-size:12.5px;color:#4a5461}
+  .kpi{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+  .kpi div{min-width:110px}
+  .kpi .v{font:22px var(--font-mono);font-variant-numeric:tabular-nums}
+  .kpi .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-mono)}
+  .swim{display:grid;grid-template-columns:150px 1fr;gap:0 10px;align-items:center}
+  .swim .lbl{font:12px var(--font-mono);color:var(--ink);text-align:right;padding:2px 0;
+             overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lane{position:relative;height:20px;border-bottom:1px solid var(--rule2)}
+  .dot{position:absolute;top:6px;width:7px;height:7px;border-radius:50%;
+       background:var(--standard);transform:translateX(-3.5px);cursor:pointer}
+  .dot.breaking{background:var(--breaking)}
+  .dot.promotional{background:var(--promo)}
+  .axis{display:grid;grid-template-columns:150px 1fr;gap:0 10px;margin-top:4px}
+  .ticks{position:relative;height:16px;color:var(--muted);font:10.5px var(--font-mono)}
+  .ticks span{position:absolute;transform:translateX(-50%)}
+  .clu{border:1px solid var(--rule);border-radius:4px;margin-bottom:10px;background:var(--rail)}
+  .clu summary{padding:11px 14px;cursor:pointer;font-size:13.5px;list-style:none;font-family:var(--font-ui)}
+  .clu summary::-webkit-details-marker{display:none}
+  .clu summary b{font-family:var(--font-head);font-weight:600;font-size:15px}
+  .clu summary .meta{color:var(--muted);font:11.5px var(--font-mono);margin-top:3px}
+  .clu .body{padding:0 14px 12px}
+  .lagbar{display:inline-block;height:8px;background:var(--standard);border-radius:2px;
+          vertical-align:middle;margin-right:6px}
+  .lagbar.zero{background:var(--breaking)}
+  .hist{display:flex;align-items:flex-end;gap:2px;height:90px;margin-top:8px}
+  .hist div{flex:1;background:var(--standard);border-radius:1px 1px 0 0;min-height:1px;
+            position:relative}
+  .hist div span{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);
+                 font:9px var(--font-mono);color:var(--muted)}
+  .legend{display:flex;gap:16px;font:11.5px var(--font-mono);color:var(--muted);margin:8px 0 12px;flex-wrap:wrap}
+  .legend i{width:3px;height:12px;display:inline-block;margin-right:6px;vertical-align:middle}
+  .stack{display:flex;height:14px;border-radius:2px;overflow:hidden;min-width:120px}
+  .stack i{display:block;height:100%}
+  .tip{position:fixed;background:var(--ink);color:var(--paper);border-radius:4px;
+       padding:8px 11px;font-size:12px;max-width:340px;pointer-events:none;z-index:99;
+       display:none;box-shadow:0 8px 24px rgba(28,39,51,.35)}
+  .tip b{display:block;margin-bottom:3px}
+  .tip .m{color:#c7cdd6;font-size:11px}
+  .muted{color:var(--muted)}
+  code.k{background:var(--rail);padding:1px 5px;border-radius:3px;font:11.5px var(--font-mono)}
+  /* monitoring */
+  .status{display:inline-block;padding:2px 9px;border-radius:3px;font:600 11px var(--font-mono);
+          border:1px solid var(--rule)}
+  .st-live,.st-up,.st-receiving{color:var(--good);border-color:var(--good)}
+  .st-quiet{color:var(--warn);border-color:var(--warn)}
+  .st-silent,.st-dead,.st-failing,.st-adb-error{color:var(--breaking);border-color:var(--breaking)}
+  .st-unknown,.st-stale,.st-offline,.st-unauthorized{color:var(--promo);border-color:var(--promo)}
+  .st-never,.st-down,.st-no-adb,.st-n\/a{color:var(--muted)}
+  .why{color:var(--muted);font-size:12px;white-space:normal;max-width:52ch}
+  .keybox{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:6px 0 4px}
+  .keybox div{border:1px solid var(--rule);border-radius:3px;padding:8px 10px;font-size:12px;color:var(--muted)}
+  .keybox b{display:block;margin-bottom:2px}
+  /* observations */
+  .shots{display:flex;gap:12px;overflow-x:auto;padding:6px 0 10px}
+  .shot{flex:0 0 auto;width:210px;border:1px solid var(--rule);border-radius:3px;background:var(--rail);overflow:hidden}
+  .shot img{display:block;width:100%;height:auto;background:#000}
+  .shot .cap{padding:6px 8px;font-size:11.5px}
+  .shot .cap b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .shot .tg{color:var(--muted);font-size:11px;margin-top:3px;white-space:normal}
+  .shot .tg .on{color:var(--good)} .shot .tg .off{color:var(--muted)}
+  .shot.fail{border-color:var(--breaking)}
+  .note{border-left:3px solid var(--standard);padding:6px 12px;margin:8px 0;background:var(--rail);border-radius:0 3px 3px 0}
+  .note .m{color:var(--muted);font-size:11px;font-family:var(--font-mono)}
+  .note p{margin:4px 0 0;white-space:pre-wrap;font-size:13px}
+  form.addnote{display:grid;gap:8px;grid-template-columns:200px 1fr auto;align-items:start;margin-top:8px}
+  form.addnote textarea{grid-column:1/-1;background:var(--card);color:var(--ink);border:1px solid var(--rule);
+       border-radius:3px;padding:8px;font:inherit;min-height:64px;resize:vertical}
+  form.addnote input{background:var(--card);color:var(--ink);border:1px solid var(--rule);border-radius:3px;padding:5px 8px;font:inherit}
+  form.addnote button{background:var(--ink);color:var(--paper);border:0;border-radius:3px;padding:6px 14px;cursor:pointer;font-weight:600}
+  .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;float:right}
+  .x:hover{color:var(--breaking)}
+  /* focus card */
+  .focus{border-color:var(--focus-outlet)}
+  .focus .kpi .v{color:var(--focus-outlet)}
+  .focus .kpi .cmp{color:var(--muted);font-size:11.5px}
+  /* timeline instrument layout */
+  .instrument{display:flex;gap:0;align-items:flex-start}
+  .instrument-main{flex:1;min-width:0}
+  .instrument-rail{width:320px;flex:0 0 320px;border-left:2px solid var(--ink);background:var(--rail);
+                   border-radius:0 4px 4px 0;display:flex;flex-direction:column;align-self:stretch}
+  .rail-head{padding:14px 16px 8px;font:600 17px var(--font-head);display:flex;align-items:center;gap:8px}
+  .rail-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-top:1px solid var(--rule)}
+  .rail-card .headline{font:600 15px/1.28 var(--font-head);color:var(--ink)}
+  .rail-first{display:flex;align-items:baseline;gap:8px;font:12px var(--font-mono);color:var(--ink)}
+  .rail-first .rdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--breaking)}
+  .rail-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .rail-chip{font:11px var(--font-mono);padding:3px 7px;border:1px solid var(--rule);border-radius:3px;
+             color:var(--ink);background:var(--card)}
+  .rail-chip span{color:var(--muted)}
+  .rail-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--rule);font:11px var(--font-mono);
+            color:var(--muted);line-height:1.5}
+  .strip-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .strip-title{font:600 20px var(--font-head)}
+  .strip-sub{font:12px var(--font-mono);color:var(--muted)}
+  @media (max-width:1080px){ .instrument{flex-direction:column} .instrument-rail{width:auto;flex:none;border-left:0;border-top:2px solid var(--ink);border-radius:0} }
+</style>
+</head>
+<body>
+<topbar>
+  <div class="brand">
+    <h1>Push Observatory</h1>
+    <span class="tagline" id="strapline">STRIP CHART · LOCAL TIME</span>
+  </div>
+  <div class="sub" id="sub">loading…</div>
+  <div class="topbar-spacer"></div>
+  <div class="lamp-row" id="lamp-row"><span class="lamp"></span>capture status…</div>
+  <button class="pill-btn" id="about-btn">About this tool</button>
+  <div style="position:relative">
+    <button class="pill-btn demo" id="demo-pill"><span class="dot"></span>Demo dataset</button>
+    <div class="pop" id="demo-pop" style="right:0;top:36px"></div>
+  </div>
+</topbar>
+
+<nav>
+  <button data-v="timeline" class="on">Timeline</button>
+  <button data-v="race">Who went first</button>
+  <button data-v="volume">Volume &amp; cadence</button>
+  <button data-v="copy">Copy analysis</button>
+  <button data-v="setup">Coverage</button>
+  <button data-v="monitoring">Monitoring</button>
+  <button data-v="observations">Observations</button>
+  <button data-v="recap">Nightly recap</button>
+</nav>
+
+<div class="controls">
+  <label>Window
+    <select id="days">
+      <option value="1">last 24h</option>
+      <option value="3">3 days</option>
+      <option value="7" selected>7 days</option>
+      <option value="14">14 days</option>
+      <option value="30">30 days</option>
+      <option value="90">90 days</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="realonly"> real data only (hide synthetic)</label>
+  <span class="muted" id="count"></span>
+</div>
+
+<main>
+  <section class="view on" id="v-timeline"></section>
+  <section class="view" id="v-race"></section>
+  <section class="view" id="v-volume"></section>
+  <section class="view" id="v-copy"></section>
+  <section class="view" id="v-setup"></section>
+  <section class="view" id="v-monitoring"></section>
+  <section class="view" id="v-observations"></section>
+  <section class="view" id="v-recap"></section>
+</main>
+
+<div class="tip" id="tip"></div>
+
+<div class="drawer-bg" id="drawer-bg">
+  <div class="drawer">
+    <button class="close" id="drawer-close">&times;</button>
+    <h2>About this tool</h2>
+    <p>A field instrument for push-notification behaviour, not a survey. It reads what apps
+      actually send, at the moment they send it.</p>
+    <h3>What it does</h3>
+    <ul>
+      <li>Captures every push alert a set of news apps send to a real device, verbatim —
+        headline, body, timestamp, category.</li>
+      <li>Groups alerts about the same story across outlets and measures who pushed first
+        and by how many minutes.</li>
+      <li>Scores each alert's copy — does it give a reason to open, or just restate the
+        headline? — and tracks send-time cadence, volume, and promotional mix per outlet.</li>
+    </ul>
+    <h3>How it works</h3>
+    <div class="flow">
+      <span>Device</span><i>&rarr;</i><span>Capture</span><i>&rarr;</i><span>Cluster</span><i>&rarr;</i><span>Recap</span>
+    </div>
+    <p>An instrumented Android device polls each app's notification state every 30 seconds.
+      New alerts are deduped and stored, then clustered by story with a text-similarity
+      pass so cross-outlet races can be timed. A nightly job turns the day's data into a
+      short recap — a statistical digest always, plus an LLM narrative when one is
+      configured.</p>
+    <h3>What production adds</h3>
+    <ul>
+      <li>A fleet of devices per outlet instead of one, so results aren't one phone's
+        quirks — different regions, OS versions, and account states side by side.</li>
+      <li>Real-time capture and alerting instead of a nightly batch, so a first-mover race
+        or a promotional-copy spike surfaces within minutes.</li>
+      <li>Longer history, outlet-level trend lines, and a focus-outlet comparison mode for
+        a team tracking its own push program against the field.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let FOCUS = null; // the configured focus outlet, if any -- set from /api/focus
+let VIEW = 'timeline', META = null, MONITORING = null;
+
+const days = () => $('#days').value;
+const realOnly = () => $('#realonly').checked;
+const qs = () => `days=${days()}&include_synthetic=${realOnly() ? 'false' : 'true'}`;
+
+/* ---------- static-export shim ----------
+   In server mode window.STATIC_BASE is unset and every call hits the live
+   FastAPI backend. build_site.py sets window.STATIC_BASE = "./data" in the
+   exported copy of this file and pre-renders each GET this UI makes to a
+   JSON file; apiPath() maps an API call to that file deterministically. See
+   demo/build_site.py's `map_path` for the Python side of this mapping --
+   the two MUST stay in sync (tests/test_static_export.py checks that). */
+function apiPath(path){
+  if(!window.STATIC_BASE) return path;
+  const [base, qsPart] = path.split('?');
+  let file = base.replace(/^\/api\//, '').replace(/^\//, '');
+  if(qsPart){
+    const params = new URLSearchParams(qsPart);
+    const pairs = [...params.entries()].sort((a,b) => a[0] < b[0] ? -1 : 1);
+    if(pairs.length) file += '__' + pairs.map(([k,v]) => `${k}-${v}`).join('_');
+  }
+  return `${window.STATIC_BASE}/${file}.json`;
+}
+
+async function get(path){
+  const r = await fetch(apiPath(path));
+  if(!r.ok) throw new Error(path + ' -> ' + r.status);
+  return r.json();
+}
+
+function emptyState(what, cmd){
+  return `<div class="card"><div class="empty">
+    <p>No data yet for <b>${esc(what)}</b>.</p>
+    ${cmd ? `<p>Run <code>${esc(cmd)}</code></p>` : ''}
+  </div></div>`;
+}
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function showTip(e, html){
+  tip.innerHTML = html; tip.style.display = 'block';
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if(x + r.width > innerWidth - 10) x = e.clientX - r.width - 14;
+  if(y + r.height > innerHeight - 10) y = e.clientY - r.height - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip(){ tip.style.display = 'none'; }
+
+/* ---------- demo-dataset pill + popover ---------- */
+function demoPill(m){
+  const btn = $('#demo-pill'), pop = $('#demo-pop');
+  if(!m.synthetic_present){ btn.style.display = 'none'; return; }
+  const n = m.stats.synthetic, real = m.stats.real;
+  pop.innerHTML = `
+    <h3>This is a demo dataset</h3>
+    <p>Every alert shown here is <b>synthetic</b> — ${n.toLocaleString()} generated rows,
+      built by <code class="k">demo/build_dataset.py</code> with a fixed random seed so the
+      shapes are realistic (morning waves, overnight quiet, wire services first, weekend
+      lulls) without being copied from real capture data or attributing invented headlines
+      to a real event.</p>
+    <p><b>What's synthetic:</b></p>
+    <ul>
+      <li>All alert text, timestamps, and story clusters</li>
+      <li>The capture log and package snapshot (shown as a healthy instrument)</li>
+      <li>The observation notes, each labeled <code class="k">[SAMPLE DEMO NOTE]</code></li>
+    </ul>
+    <p><b>What a production deployment captures instead:</b> real push alerts pulled live
+      off an instrumented device's notification shade, fleet-wide, with the same clustering
+      and copy analysis running continuously.</p>
+    ${real ? `<p>There ${real===1?'is':'are'} also <b>${real}</b> real captured alert${real===1?'':'s'}
+      in this database — tick "real data only" to see just those.</p>` : ''}
+  `;
+  btn.onclick = e => { e.stopPropagation(); pop.classList.toggle('on'); };
+  document.addEventListener('click', e => {
+    if(!pop.contains(e.target) && e.target !== btn) pop.classList.remove('on');
+  });
+}
+
+/* ---------- capture-live lamp ---------- */
+function renderLamp(){
+  const row = $('#lamp-row');
+  if(!MONITORING){ row.innerHTML = `<span class="lamp down"></span>CAPTURE STATUS UNKNOWN`; return; }
+  const c = MONITORING.capture;
+  const live = c.state === 'live';
+  const cls = live ? '' : (c.state === 'failing' ? 'down' : 'stale');
+  const s = c.seconds_since;
+  const agoTxt = s === null || s === undefined ? '—'
+    : s < 90 ? `${s}s AGO` : s < 5400 ? `${Math.round(s/60)} MIN AGO` : `${(s/3600).toFixed(1)} H AGO`;
+  const label = live ? 'CAPTURE LIVE' : `CAPTURE ${c.state.toUpperCase()}`;
+  row.innerHTML = `<span class="lamp ${cls}"></span>${label} · LAST POLL ${agoTxt}`;
+}
+
+/* ---------- about drawer ---------- */
+$('#about-btn').onclick = () => $('#drawer-bg').classList.add('on');
+$('#drawer-close').onclick = () => $('#drawer-bg').classList.remove('on');
+$('#drawer-bg').onclick = e => { if(e.target === $('#drawer-bg')) $('#drawer-bg').classList.remove('on'); };
+
+/* ---------- focus-outlet-vs-field card (mirrors recap.py's focus section) ---------- */
+async function focusCard(){
+  const f = await get('/api/focus?' + qs());
+  FOCUS = f.focus || null;
+  if(!f.enabled){
+    // No focus outlet configured (the public demo never sets one): render nothing rather than a config hint.
+    return '';
+  }
+  const fmt = (v, suffix='') => v === null || v === undefined ? '—' : v + suffix;
+  const vs = f.volume_vs_median === null ? '' :
+    f.volume_vs_median > 1.15 ? 'over-pushing vs peers' :
+    f.volume_vs_median < 0.85 ? 'under-pushing vs peers' : 'about the median';
+  const fr = f.first_rate === null ? '' :
+    (f.peer_median_first_rate !== null ? `peer median ${f.peer_median_first_rate}%` : 'no peers yet');
+  return `
+  <div class="card focus">
+    <h2><span class="focus-outlet">${esc(f.focus)}</span> vs. peers
+      <span class="muted" style="font-weight:400;font-size:12px">— last ${f.days} day${f.days>1?'s':''},
+      ${f.total_alerts} alerts from ${f.outlets_active} outlets${f.contains_synthetic?' · <span class="chip syn">includes synthetic</span>':''}</span></h2>
+    <p class="note">The four numbers the nightly recap opens its focus section with, computed by the
+      same functions (<code class="k">recap.gather_window</code> → <code class="k">recap.focus_summary</code>).</p>
+    ${f.alerts === 0 ? `<div class="empty" style="padding:12px">No ${esc(f.focus)} alerts in this window.</div>` : `
+    <div class="kpi">
+      <div><div class="v">${fmt(f.first_rate,'%')}</div><div class="k">first-mover rate</div>
+           <div class="cmp">${f.firsts}/${f.shared_stories} shared stories · ${fr}</div></div>
+      <div><div class="v">${fmt(f.volume_vs_median,'×')}</div><div class="k">volume vs median</div>
+           <div class="cmp">${f.alerts} alerts vs median ${f.median_volume} · ${vs}</div></div>
+      <div><div class="v">${fmt(f.breaking_share_pct,'%')}</div><div class="k">breaking share</div>
+           <div class="cmp">of ${esc(f.focus)}'s own alerts</div></div>
+      <div><div class="v">${fmt(f.reason_to_open_pct,'%')}</div><div class="k">reason to open</div>
+           <div class="cmp">${fmt(f.restatement_pct,'%')} restate the headline</div></div>
+    </div>`}
+  </div>`;
+}
+
+/* ---------- strip-chart SVG builder (the instrument's core view) ---------- */
+const KIND_COLOR = {breaking:'var(--breaking)', standard:'var(--standard)', promotional:'var(--promo)'};
+const KIND_HEX = {breaking:'#c8102e', standard:'#2a78d6', promotional:'#e87ba4'};
+
+function buildStripChart(lanes, day){
+  const rows = lanes.map(l => ({outlet: l.outlet, alerts: l.alerts.filter(a => a.date === day)}))
+                     .filter(r => r.alerts.length);
+  if(!rows.length) return {svg: '<div class="empty">No alerts on this day.</div>', stats: null};
+
+  const VBW = 1180, chartLeft = 150, chartRight = VBW - 20, axisY = 34, axisLabelY = 28;
+  const rowH = 22, laneTop = i => 40 + i * rowH;
+  const height = laneTop(rows.length) + 12;
+  const x = h => chartLeft + (h / 24) * (chartRight - chartLeft);
+
+  let svg = `<svg width="100%" height="${height}" viewBox="0 0 ${VBW} ${height}" style="display:block;font-family:'IBM Plex Mono',monospace">`;
+  for(let h = 0; h <= 24; h += 3){
+    const main = h % 6 === 0;
+    svg += `<line x1="${x(h).toFixed(1)}" y1="${axisY}" x2="${x(h).toFixed(1)}" y2="${height - 8}" stroke="${main ? '#b9b0a0' : '#d9d2c3'}" stroke-width="1" ${main ? '' : 'stroke-dasharray="2 4"'}/>`;
+    svg += `<text x="${x(h).toFixed(1)}" y="${axisLabelY}" text-anchor="middle" font-size="10.5" fill="#7a8290">${String(h).padStart(2,'0')}</text>`;
+  }
+  rows.forEach((r, i) => {
+    const labelY = laneTop(i) + 15, ruleY = laneTop(i) + 22;
+    svg += `<text x="${chartLeft - 10}" y="${labelY}" text-anchor="end" font-size="11.5" fill="#1c2733">${esc(r.outlet)}</text>`;
+    svg += `<line x1="${chartLeft}" y1="${ruleY}" x2="${chartRight}" y2="${ruleY}" stroke="#e6dfd0" stroke-width="1"/>`;
+    r.alerts.forEach(a => {
+      const breaking = a.kind === 'breaking';
+      const tickY = laneTop(i) + (breaking ? 3 : 6);
+      const tickH = breaking ? 16 : 10;
+      svg += `<rect x="${(x(a.hour) - 1.25).toFixed(1)}" y="${tickY}" width="2.5" height="${tickH}" rx="1" fill="${KIND_HEX[a.kind] || KIND_HEX.standard}"/>`;
+    });
+    svg += `<text x="${chartRight + 6}" y="${labelY}" font-size="11" fill="#7a8290">${r.alerts.length}</text>`;
+  });
+  svg += `</svg>`;
+
+  // ---- summary-tile stats, computed from this day's real alerts ----
+  const flat = rows.flatMap(r => r.alerts.map(a => ({...a, outlet: r.outlet})));
+  const total = flat.length;
+
+  const windowStats = (span) => {
+    let best = {start: 0, count: -1, outlets: new Set()};
+    for(let start = 0; start <= 24 - span; start += 0.25){
+      const inWin = flat.filter(a => a.hour >= start && a.hour < start + span);
+      if(inWin.length > best.count) best = {start, count: inWin.length, outlets: new Set(inWin.map(a => a.outlet))};
+    }
+    return best;
+  };
+  const fmtH = h => { const hh = Math.floor(h), mm = Math.round((h - hh) * 60); return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`; };
+
+  const morning = windowStats(1.5);
+  let quiet = {start: 0, count: total + 1, outlets: new Set()};
+  for(let start = 0; start <= 24 - 6; start += 0.25){
+    const inWin = flat.filter(a => a.hour >= start && a.hour < start + 6);
+    if(inWin.length < quiet.count) quiet = {start, count: inWin.length, outlets: new Set(inWin.map(a => a.outlet))};
+  }
+
+  const promoCount = flat.filter(a => a.kind === 'promotional').length;
+  const promoByOutlet = {};
+  flat.filter(a => a.kind === 'promotional').forEach(a => promoByOutlet[a.outlet] = (promoByOutlet[a.outlet]||0) + 1);
+  const topPromo = Object.entries(promoByOutlet).sort((a,b) => b[1]-a[1]).slice(0,2).map(([o]) => o);
+
+  const stats = {
+    total,
+    morning: {
+      range: `${fmtH(morning.start)}–${fmtH(morning.start + 1.5)}`,
+      detail: `${morning.count} alert${morning.count===1?'':'s'} · ${morning.outlets.size} outlet${morning.outlets.size===1?'':'s'} fire within 90 minutes`
+    },
+    quiet: {
+      range: `${fmtH(quiet.start)}–${fmtH(quiet.start + 6)}`,
+      detail: `${quiet.count} alert${quiet.count===1?'':'s'} · ${quiet.outlets.size} outlet${quiet.outlets.size===1?'':'s'}`
+    },
+    promo: {
+      pct: total ? (promoCount / total * 100).toFixed(1) : '0.0',
+      detail: `${promoCount} of ${total}${topPromo.length ? ' · ' + topPromo.map(esc).join(', ') + ' lead' + (topPromo.length===1?'s':'') : ''}`
+    }
+  };
+  return {svg, stats};
+}
+
+/* ---------- "Who went first" rail card, from real cluster data ---------- */
+function raceRail(raceData){
+  const clusters = (raceData.clusters || [])
+    .filter(c => c.entries.length > 1)
+    .sort((a, b) => (b.outlets - a.outlets) || (new Date(b.first_at) - new Date(a.first_at)))
+    .slice(0, 3);
+  const bodyHtml = clusters.length ? clusters.map(c => {
+    const first = c.entries[0];
+    const chips = c.entries.slice(1).map(e =>
+      `<span class="rail-chip">${esc(e.outlet)} <span>+${e.lag_min.toFixed(1)}m</span></span>`).join('');
+    return `
+    <div class="rail-card">
+      <div class="headline">${esc(c.label)}</div>
+      <div class="rail-first"><span class="rdot"></span><span style="font-weight:600">${esc(first.outlet)}</span>
+        <span class="muted">first · ${esc(first.time)}</span></div>
+      <div class="rail-chips">${chips}</div>
+    </div>`;
+  }).join('') : `<div class="rail-card"><span class="muted">No multi-outlet stories in this window yet.</span></div>`;
+  return `
+  <div class="instrument-rail">
+    <div class="rail-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c2733" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>
+      Who went first
+    </div>
+    ${bodyHtml}
+    <div class="rail-foot">Clusters are same-story alerts across outlets within 90 minutes. Lag is minutes after the first push.</div>
+  </div>`;
+}
+
+/* ---------- view 1: strip chart / "the instrument" ---------- */
+async function renderTimeline(el){
+  const d = await get('/api/timeline?' + qs());
+  const r = await get('/api/race?' + qs());
+  const card = await focusCard();
+  if(!d.lanes.length){ el.innerHTML = card + emptyState('the timeline', 'python capture.py --once'); return; }
+
+  const dates = d.days;
+  // Default to the busiest *complete* day in the window, not today: a partial
+  // day is a misleading first impression of what a news day looks like.
+  const countByDay = {};
+  for(const lane of d.lanes) for(const a of (lane.alerts || [])){ const k = (a.date || (a.posted_at || '').slice(0,10)); if(k) countByDay[k] = (countByDay[k]||0)+1; }
+  const complete = dates.slice(0, -1);
+  const dsel = (complete.length ? complete : dates).reduce((best, k) => (countByDay[k]||0) > (countByDay[best]||0) ? k : best, (complete.length ? complete : dates)[0]);
+
+  el.innerHTML = card + `
+  <div class="card">
+    <div class="instrument">
+      <div class="instrument-main">
+        <div class="strip-head">
+          <div class="strip-title">Today's trace</div>
+          <div class="strip-sub" id="trace-sub"></div>
+          <label class="muted" style="margin-left:auto;font-family:var(--font-ui)">Day
+            <select id="tday">${dates.map(x => `<option ${x===dsel?'selected':''}>${x}</option>`).join('')}</select>
+          </label>
+          <div class="legend" style="margin:0">
+            <span><i style="background:var(--breaking)"></i>breaking</span>
+            <span><i style="background:var(--standard)"></i>standard</span>
+            <span><i style="background:var(--promo)"></i>promotional</span>
+          </div>
+        </div>
+        <div id="strip"></div>
+        <div class="tiles" id="tiles" style="margin-top:14px"></div>
+      </div>
+      ${raceRail(r)}
+    </div>
+  </div>`;
+
+  const draw = () => {
+    const day = $('#tday').value;
+    const totalForDay = countByDay[day] || 0;
+    const dt = new Date(day + 'T00:00:00');
+    const weekday = dt.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric'});
+    $('#trace-sub').textContent = `${weekday} · ${totalForDay} alerts`;
+    const {svg, stats} = buildStripChart(d.lanes, day);
+    $('#strip').innerHTML = svg;
+    $('#tiles').innerHTML = stats ? `
+      <div class="tile"><div class="k">Morning wave</div><div class="v">${stats.morning.range}</div><div class="d">${stats.morning.detail}</div></div>
+      <div class="tile"><div class="k">Quiet hours</div><div class="v">${stats.quiet.range}</div><div class="d">${stats.quiet.detail}</div></div>
+      <div class="tile"><div class="k">Promotional share</div><div class="v">${stats.promo.pct}%</div><div class="d">${stats.promo.detail}</div></div>
+    ` : '';
+
+    $('#strip').querySelectorAll('rect').forEach(rect => {
+      // ticks carry no dataset (kept minimal like the artboard); skip hover wiring
+      // in favour of the accessible swimlane detail below the chart.
+    });
+  };
+  $('#tday').onchange = draw;
+  draw();
+}
+
+/* ---------- view 2: who went first ---------- */
+async function renderRace(el){
+  const d = await get('/api/race?' + qs());
+  if(!d.clusters.length){
+    el.innerHTML = emptyState('the race view',
+      'python cluster.py   # after capturing alerts from 2+ outlets');
+    return;
+  }
+  const maxLag = Math.max(10, ...d.clusters.flatMap(c => c.entries.map(e => e.lag_min)));
+  const lb = d.leaderboard;
+
+  el.innerHTML = `
+  <div class="card">
+    <h2>First-mover leaderboard</h2>
+    <p class="note">Across every story that at least two tracked outlets pushed:
+      how often did each outlet go first, and when it did not, how far behind was it?
+      "Stories" counts only the clusters that outlet actually participated in, so an
+      outlet that pushes rarely is not punished for the stories it skipped.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th class="num">Stories</th><th class="num">Firsts</th>
+        <th class="num">First rate</th><th class="num">Median lag</th><th>&nbsp;</th></tr></thead>
+      <tbody>${lb.map(r => `<tr>
+        <td class="${r.outlet===FOCUS?'focus-outlet':''}">${esc(r.outlet)}</td>
+        <td class="num">${r.stories}</td>
+        <td class="num">${r.firsts}</td>
+        <td class="num">${r.first_rate}%</td>
+        <td class="num">${r.median_lag_min} min</td>
+        <td style="width:40%"><span class="bar" style="width:${Math.max(2, r.first_rate)}%"></span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <canvas id="raceChart" height="${Math.max(90, lb.length * 20)}" style="margin-top:14px"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Story by story <span class="muted" style="font-weight:400;font-size:12px">(${d.cluster_count} clustered stories)</span></h2>
+    <p class="note">Each row is one event as covered across outlets, ordered most recent first.
+      The bar length is the lag behind the first mover.</p>
+    ${d.clusters.slice(0,60).map(c => `
+      <details class="clu">
+        <summary>
+          <b>${esc(c.label)}</b>
+          <div class="meta">${esc(c.first_outlet)} first · ${c.outlets} outlets ·
+            spread ${c.spread_min} min · ${esc(c.when)}</div>
+        </summary>
+        <div class="body"><table>
+          <thead><tr><th>Outlet</th><th class="num">Lag</th><th>Their copy</th></tr></thead>
+          <tbody>${c.entries.map(e => `<tr>
+            <td class="${e.outlet===FOCUS?'focus-outlet':''}">${esc(e.outlet)}${e.synthetic?' <span class="chip syn">syn</span>':''}</td>
+            <td class="num"><span class="lagbar ${e.lag_min===0?'zero':''}"
+                 style="width:${Math.max(3,(e.lag_min/maxLag)*90).toFixed(1)}px"></span>${e.lag_min===0?'first':e.lag_min+'m'}</td>
+            <td style="white-space:normal">${esc(e.title)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>
+      </details>`).join('')}
+  </div>`;
+
+  const top = lb.slice(0, 20);
+  destroyChart('raceChart');
+  CHARTS.raceChart = new Chart($('#raceChart'), {
+    type: 'bar',
+    data: { labels: top.map(r => r.outlet), datasets: [
+      { data: top.map(r => r.first_rate), backgroundColor: '#2a78d6', borderRadius: 1, barThickness: 10 } ] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { x: { max: 100, grid: { color: '#e6dfd0' }, ticks: { color: '#7a8290' } },
+                y: { grid: { display: false }, ticks: { color: '#1c2733' } } } }
+  });
+}
+
+/* ---------- chart.js theme + helpers ---------- */
+const CHARTS = {}; // id -> Chart instance, so re-renders destroy the old one first
+function destroyChart(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
+if (window.Chart) {
+Chart.defaults.color = '#7a8290';
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 11;
+Chart.defaults.borderColor = '#e6dfd0';
+}
+
+/* ---------- view 3: volume ---------- */
+async function renderVolume(el){
+  const d = await get('/api/volume?' + qs());
+  if(!d.outlets.length){ el.innerHTML = emptyState('volume', 'python capture.py --once'); return; }
+  const maxPD = Math.max(...d.outlets.map(o => o.per_day));
+  const focusRow = FOCUS ? d.outlets.find(o => o.outlet === FOCUS) : null;
+  const dailyTotal = d.dates.map((_, i) => d.outlets.reduce((s,o) => s + (o.series[i]||0), 0));
+
+  el.innerHTML = `
+  <div class="card">
+    <h2>Alerts per day, all outlets combined</h2>
+    <p class="note">Total push volume across every tracked outlet, by date. Spikes are
+      multi-outlet breaking-news days; the dip at the edges is a partial first/last day.</p>
+    <canvas id="dailyChart" height="70"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Send-time distribution — all outlets</h2>
+    <p class="note">Hour of day in your local timezone. The overnight trough and the
+      morning-briefing spike are the two shapes to look for.</p>
+    <canvas id="hourChart" height="70"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Alerts per day by outlet</h2>
+    <p class="note">Median across tracked outlets is <b>${d.median_per_day}</b> alerts/day.
+      ${focusRow ? `${esc(FOCUS)} sends <b>${focusRow.per_day}</b> — ${
+        focusRow.per_day > d.median_per_day ? 'above' : focusRow.per_day < d.median_per_day ? 'below' : 'at'
+      } the median.` : ''}</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th class="num">Total</th><th class="num">Per day</th>
+        <th class="num">Weekday</th><th class="num">Weekend</th>
+        <th class="num">Overnight</th><th>Send-time shape</th></tr></thead>
+      <tbody>${d.outlets.map(o => {
+        const m = Math.max(1, ...o.hours);
+        return `<tr>
+          <td class="${o.outlet===FOCUS?'focus-outlet':''}">${esc(o.outlet)}</td>
+          <td class="num">${o.total}</td>
+          <td class="num">${o.per_day}</td>
+          <td class="num">${o.weekday_per_day}</td>
+          <td class="num">${o.weekend_per_day}</td>
+          <td class="num">${o.overnight_pct}%</td>
+          <td><span style="display:inline-flex;align-items:flex-end;height:22px;gap:1px">
+            ${o.hours.map(v => `<i style="display:block;width:3px;background:var(--standard);
+               height:${Math.max(1,v/m*22).toFixed(1)}px"></i>`).join('')}</span></td>
+        </tr>`;}).join('')}</tbody>
+    </table></div>
+    <p class="note" style="margin-top:10px">"Overnight" is midnight–06:00 local.</p>
+  </div>`;
+
+  destroyChart('dailyChart'); destroyChart('hourChart');
+  CHARTS.dailyChart = new Chart($('#dailyChart'), {
+    type: 'line',
+    data: { labels: d.dates, datasets: [{ data: dailyTotal, borderColor: '#2a78d6',
+      backgroundColor: 'rgba(42,120,214,.10)', fill: true, tension: .2, pointRadius: 0, borderWidth: 1.5 }] },
+    options: { plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 10, color: '#7a8290' } },
+                y: { beginAtZero: true, grid: { color: '#e6dfd0' }, ticks: { color: '#7a8290' } } } }
+  });
+  CHARTS.hourChart = new Chart($('#hourChart'), {
+    type: 'bar',
+    data: { labels: d.all_hours.map((_,h) => String(h).padStart(2,'0')),
+      datasets: [{ data: d.all_hours, backgroundColor: '#2a78d6', borderRadius: 1 }] },
+    options: { plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, ticks: { color: '#7a8290' } },
+                y: { beginAtZero: true, grid: { color: '#e6dfd0' }, ticks: { color: '#7a8290' } } } }
+  });
+}
+
+/* ---------- view 4: copy ---------- */
+async function renderCopy(el){
+  const d = await get('/api/copy?' + qs());
+  if(!d.outlets.length){ el.innerHTML = emptyState('copy analysis', 'python capture.py --once'); return; }
+  const focusRow = FOCUS ? d.outlets.find(o => o.outlet === FOCUS) : null;
+
+  el.innerHTML = `
+  <div class="card">
+    <h2>Does the alert give a reason to open?</h2>
+    <p class="note">The question that matters for push copy. <b>Restatement</b> means the body
+      repeats the headline or is boilerplate ("Read more") — the reader learns nothing by
+      opening. <b>Adds detail</b> carries a fact the headline did not. <b>Hook</b> promises a
+      payoff. This is a heuristic on short text, so read it as a distribution, not a grade.
+      ${focusRow ? `${esc(FOCUS)} gives a reason to open in <b>${focusRow.reason_to_open_pct}%</b> of alerts.` : ''}</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th class="num">n</th><th class="num">Median chars</th>
+        <th class="num">Reason to open</th><th class="num">Restates</th>
+        <th class="num">Breaking</th><th class="num">Promo</th>
+        <th class="num">Emoji</th><th class="num">ALL CAPS</th><th class="num">Urgency/alert</th></tr></thead>
+      <tbody>${d.outlets.map(o => `<tr>
+        <td class="${o.outlet===FOCUS?'focus-outlet':''}">${esc(o.outlet)}</td>
+        <td class="num">${o.n}</td>
+        <td class="num">${o.median_title_chars}</td>
+        <td class="num" style="color:#136d3c">${o.reason_to_open_pct}%</td>
+        <td class="num">${o.restatement_pct}%</td>
+        <td class="num">${o.breaking_pct}%</td>
+        <td class="num" style="color:${o.promotional_pct>10?'var(--promo)':'inherit'}">${o.promotional_pct}%</td>
+        <td class="num">${o.emoji_pct}%${o.top_emoji.length?' '+o.top_emoji.slice(0,3).join(''):''}</td>
+        <td class="num">${o.shouty_pct}%</td>
+        <td class="num">${o.urgency_per_alert}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2>Breaking vs promotional mix</h2>
+    <p class="note">Pink is promotional copy — subscription offers, "you haven't read today",
+      deals. A high pink share on a news app is the editorial-versus-lifecycle arbitration
+      question showing up in the data.</p>
+    <div class="legend">
+      <span><i style="background:var(--breaking)"></i>breaking</span>
+      <span><i style="background:var(--standard)"></i>standard</span>
+      <span><i style="background:var(--promo)"></i>promotional</span>
+    </div>
+    <canvas id="mixChart" height="${Math.max(90, d.outlets.length * 24)}"></canvas>
+    <div class="scroll" style="margin-top:14px"><table><tbody>${d.outlets.map(o => {
+      const p = o.promotional_pct, b = o.breaking_pct, s = Math.max(0, 100-p-b);
+      return `<tr><td style="width:180px" class="${o.outlet===FOCUS?'focus-outlet':''}">${esc(o.outlet)}</td>
+        <td><div class="stack" style="width:100%">
+          <i style="width:${b}%;background:var(--breaking)"></i>
+          <i style="width:${s}%;background:var(--standard)"></i>
+          <i style="width:${p}%;background:var(--promo)"></i>
+        </div></td>
+        <td class="num" style="width:90px">${p}% promo</td></tr>`;}).join('')}</tbody></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Sample of classified alerts</h2>
+    <p class="note">Spot-check the classifier here. If these labels look wrong, tune
+      <code class="k">copy_analysis.py</code> — the BOILERPLATE and HOOK_MARKERS lists are
+      the first things to extend.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th>Title</th><th>Framing</th><th>Kind</th><th class="num">Chars</th></tr></thead>
+      <tbody>${d.examples.slice(0,80).map(e => `<tr>
+        <td class="${e.outlet===FOCUS?'focus-outlet':''}">${esc(e.outlet)}</td>
+        <td style="white-space:normal;max-width:420px">${esc(e.title)}
+          ${e.synthetic?'<span class="chip syn">syn</span>':''}</td>
+        <td><span class="chip ${e.framing==='restatement'?'':'standard'}">${e.framing}</span></td>
+        <td><span class="chip ${e.kind}">${e.kind}</span></td>
+        <td class="num">${e.chars}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  destroyChart('mixChart');
+  const outletNames = d.outlets.map(o => o.outlet);
+  CHARTS.mixChart = new Chart($('#mixChart'), {
+    type: 'bar',
+    data: { labels: outletNames, datasets: [
+      { label: 'breaking', data: d.outlets.map(o => o.breaking_pct), backgroundColor: '#c8102e' },
+      { label: 'standard', data: d.outlets.map(o => Math.max(0, 100 - o.breaking_pct - o.promotional_pct)), backgroundColor: '#2a78d6' },
+      { label: 'promotional', data: d.outlets.map(o => o.promotional_pct), backgroundColor: '#e87ba4' },
+    ]},
+    options: { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { x: { stacked: true, max: 100, grid: { color: '#e6dfd0' }, ticks: { color: '#7a8290' } },
+                y: { stacked: true, grid: { display: false }, ticks: { color: '#1c2733' } } } }
+  });
+}
+
+/* ---------- view 5: coverage / setup ---------- */
+async function renderSetup(el){
+  const m = META;
+  const seen = new Map(m.outlets.map(o => [o.outlet, o]));
+  const cap = m.last_capture;
+  el.innerHTML = `
+  <div class="card">
+    <h2>Capture health</h2>
+    <div class="kpi">
+      <div><div class="v">${m.stats.real}</div><div class="k">real alerts</div></div>
+      <div><div class="v">${m.stats.synthetic}</div><div class="k">synthetic</div></div>
+      <div><div class="v">${m.stats.outlets}</div><div class="k">outlets seen</div></div>
+      <div><div class="v">${m.stats.first ? m.stats.first.slice(0,10) : '—'}</div><div class="k">first alert</div></div>
+    </div>
+    <p class="note" style="margin-top:8px">Last capture cycle:
+      ${cap ? `<b style="color:${cap.ok?'#136d3c':'var(--breaking)'}">${cap.ok?'ok':'FAILED'}</b>
+        — ${esc(cap.note||'')} at ${esc(cap.ts)} (parsed ${cap.parsed}, inserted ${cap.inserted})`
+            : 'never run. Start it with <code class="k">python capture.py</code>.'}</p>
+  </div>
+
+  <div class="card">
+    <h2>Outlet coverage</h2>
+    <p class="note">Which tracked outlets have actually produced alerts. An outlet with a
+      verified package but zero real alerts after a day of capture means one of: the app is
+      not installed, its notification permission is off, its in-app alert categories are
+      disabled, or the package id below is wrong. Check in that order.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th>Package</th><th>Package id confidence</th>
+        <th>RSS</th><th class="num">Alerts seen</th><th>Status</th></tr></thead>
+      <tbody>${m.tracked.map(t => {
+        const s = seen.get(t.name);
+        const n = s ? s.n : 0;
+        let status, colour;
+        if(!t.package){ status = 'no Android app'; colour = 'var(--muted)'; }
+        else if(n === 0){ status = 'no alerts yet'; colour = 'var(--warn)'; }
+        else { status = 'receiving'; colour = '#136d3c'; }
+        return `<tr>
+          <td class="${t.name===FOCUS?'focus-outlet':''}">${esc(t.name)}</td>
+          <td><code class="k">${esc(t.package || '—')}</code></td>
+          <td>${t.confidence === 'verified' ? '<span class="muted">verified</span>'
+                : `<span style="color:var(--warn)">${esc(t.confidence)}</span>`}</td>
+          <td>${t.has_rss ? '<span class="muted">yes</span>' : '<span style="color:var(--muted)">none</span>'}</td>
+          <td class="num">${n}</td>
+          <td style="color:${colour}">${status}</td>
+        </tr>`;}).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ---------- view 6: monitoring ---------- */
+const pill = st => `<span class="status st-${esc(st)}">${esc(st)}</span>`;
+const ago = s => s === null || s === undefined ? '—' :
+  s < 90 ? `${s}s ago` : s < 5400 ? `${Math.round(s/60)} min ago` : `${(s/3600).toFixed(1)} h ago`;
+
+async function renderMonitoring(el){
+  const m = MONITORING || await get('/api/monitoring');
+  const c = m.capture, dv = m.device, mr = m.miss_rate, pk = m.packages;
+  el.innerHTML = `
+  <div class="card">
+    <h2>Is the instrument working?</h2>
+    <p class="note">Everything on this tab is about <em>us</em>, not the outlets. When the capture
+      loop is not live, every outlet reads <b>unknown</b> below on purpose: silence from a dead
+      instrument is not a finding about anyone's push strategy.</p>
+    <div class="kpi">
+      <div><div class="v">${pill(c.state)}</div><div class="k">capture loop</div></div>
+      <div><div class="v">${ago(c.seconds_since)}</div><div class="k">last poll</div></div>
+      <div><div class="v">${c.polls_last_hour}</div><div class="k">polls last hour</div></div>
+      <div><div class="v" style="color:${c.failures_last_hour?'var(--breaking)':'inherit'}">${c.failures_last_hour}</div><div class="k">failures last hour</div></div>
+      <div><div class="v">${pill(dv.state)}</div><div class="k">emulator / adb</div></div>
+    </div>
+    <p class="note" style="margin-top:6px"><b>Capture:</b> ${esc(c.explanation)}
+      ${c.last_note ? `<span class="muted">(last note: ${esc(c.last_note)})</span>` : ''}<br>
+      <b>Device:</b> ${esc(dv.explanation)}
+      ${dv.devices.length ? `<span class="muted">— ${dv.devices.map(d=>esc(d.serial)+'='+esc(d.state)).join(', ')}</span>` : ''}</p>
+  </div>
+
+  <div class="card">
+    <h2>Per-outlet: silence vs. no news</h2>
+    <div class="keybox">
+      <div><b>${pill('receiving')}</b> an alert in the last 6 h</div>
+      <div><b>${pill('quiet')}</b> 6–24 h without one while the instrument is live — a news lull</div>
+      <div><b>${pill('silent')}</b> 24 h+ without one while the instrument is live — suspect the app</div>
+      <div><b>${pill('unknown')}</b> the capture loop is not live, so the silence is ours</div>
+      <div><b>${pill('never')}</b> no real alert ever captured from this outlet</div>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Outlet</th><th>Verdict</th><th class="num">Hours since last</th><th>Last real alert</th><th>Why</th></tr></thead>
+      <tbody>${m.outlets.map(o => `<tr>
+        <td class="${o.outlet===FOCUS?'focus-outlet':''}">${esc(o.outlet)}
+          ${o.confidence!=='verified'&&o.package?`<span class="chip" style="color:var(--warn)">${esc(o.confidence)} id</span>`:''}</td>
+        <td>${pill(o.verdict)}</td>
+        <td class="num">${o.hours_since ?? '—'}</td>
+        <td class="muted">${esc(o.last_seen || '—')}</td>
+        <td class="why">${esc(o.why)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h2>Parser miss-rate <span class="muted" style="font-weight:400;font-size:12px">(proxy)</span></h2>
+      ${mr.measurable
+        ? `<div class="kpi"><div><div class="v">${mr.rate_pct}%</div><div class="k">missed live</div></div>
+             <div><div class="v">${mr.historical_first}</div><div class="k">of ${mr.total} real alerts</div></div></div>`
+        : `<div class="empty" style="padding:14px">Not measurable yet.</div>`}
+      <p class="note">${esc(mr.explanation)}</p>
+    </div>
+    <div class="card">
+      <h2>Installed vs. expected packages</h2>
+      ${pk.measurable ? `
+        <p class="note">Snapshot ${esc(pk.snapshot_ts)} · ${pk.installed_count} third-party packages on device ·
+          <b style="color:${pk.missing.length?'var(--breaking)':'#136d3c'}">${pk.missing.length} expected app${pk.missing.length===1?'':'s'} missing</b></p>
+        <div class="scroll"><table><thead><tr><th>Outlet</th><th>Package</th><th>Status</th></tr></thead>
+        <tbody>${pk.expected.map(e => `<tr>
+          <td class="${e.outlet===FOCUS?'focus-outlet':''}">${esc(e.outlet)}</td>
+          <td><code class="k">${esc(e.found_as || e.package)}</code></td>
+          <td style="color:${e.installed?(e.via_alternate?'var(--warn)':'#136d3c'):'var(--breaking)'}">
+            ${e.installed ? (e.via_alternate ? 'installed under ALTERNATE id — fix packages.py' : 'installed') : 'MISSING'}</td>
+        </tr>`).join('')}</tbody></table></div>
+        ${pk.unexpected_third_party.length ? `<p class="note">Other third-party packages on device:
+          ${pk.unexpected_third_party.map(p=>`<code class="k">${esc(p)}</code>`).join(' ')}</p>` : ''}`
+      : `<div class="empty" style="padding:14px">No snapshot stored.</div><p class="note">${esc(pk.explanation)}</p>`}
+    </div>
+  </div>
+
+  ${m.unmapped.length ? `<div class="card"><h2>Unmapped packages seen by capture</h2>
+    <p class="note">Real alerts from packages that packages.py does not know. A news app under a wrong id shows up here.</p>
+    <div class="scroll"><table><tbody>${m.unmapped.map(u=>`<tr><td><code class="k">${esc(u.package)}</code></td><td class="num">${u.n}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+
+  <div class="card">
+    <h2>Recent capture cycles</h2>
+    ${m.recent_log.length ? `<div class="scroll"><table>
+      <thead><tr><th>When</th><th>ok</th><th class="num">parsed</th><th class="num">inserted</th><th>note</th></tr></thead>
+      <tbody>${m.recent_log.map(r => `<tr><td class="muted">${esc(r.ts)}</td>
+        <td style="color:${r.ok?'#136d3c':'var(--breaking)'}">${r.ok?'ok':'FAIL'}</td>
+        <td class="num">${r.parsed}</td><td class="num">${r.inserted}</td><td class="why">${esc(r.note||'')}</td></tr>`).join('')}</tbody>
+    </table></div>` : `<div class="empty" style="padding:14px">capture.py has not logged a cycle. Start it with <code>python capture.py</code>.</div>`}
+  </div>`;
+}
+
+/* ---------- view 7: observations ---------- */
+async function renderObservations(el){
+  const d = await get('/api/observations');
+  const outletNames = META.tracked.map(t => t.name);
+  const withContent = d.outlets.filter(o => o.captures.length || o.notes.length);
+  el.innerHTML = `
+  <div class="card">
+    <h2>Observation log</h2>
+    <p class="note">The qualitative side: what each app <em>shows</em>, next to what it sends.
+      Screenshots and toggle states come from <code class="k">observe.py</code> captures in
+      <code class="k">${esc(d.obs_dir)}</code>; notes are yours, stored in the <code class="k">observations</code> table.
+      ${d.capture_count} capture session${d.capture_count===1?'':'s'}, ${d.note_count} note${d.note_count===1?'':'s'}.</p>
+    ${window.STATIC_BASE ? `
+    <p class="note" style="color:var(--warn)">Read-only demo — adding and deleting notes needs the
+      live API and is disabled in this static export.</p>` : `
+    <form class="addnote" id="addnote">
+      <input list="outlets" id="n-outlet" placeholder="Outlet (e.g. Reuters)" required>
+      <datalist id="outlets">${outletNames.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+      <input id="n-ref" placeholder="optional ref: package/date/file.png">
+      <button type="submit">Add note</button>
+      <textarea id="n-note" placeholder="What did you see? e.g. 'Breaking News toggle ON by default; Top Stories off; no frequency control anywhere.'" required></textarea>
+    </form>`}
+  </div>
+  ${withContent.length ? withContent.map(o => `
+  <div class="card">
+    <h2 class="${o.outlet===FOCUS?'focus-outlet':''}">${esc(o.outlet)} <span class="muted" style="font-weight:400;font-size:12px">${esc(o.package||'')}</span></h2>
+    ${o.captures.map(c => `
+      <details open class="clu"><summary><b>${esc(c.date)}</b>
+        <div class="meta">${c.steps.length} steps${c.sessions.length?' · '+esc(c.sessions.join('; ')):''}
+          · <a href="${esc(c.index)}" target="_blank">index.md</a>
+          ${c.channels ? ` · ${c.channels.channels.length} OS channels${c.channels.scoped?'':' (unscoped)'}` : ''}</div></summary>
+        <div class="body">
+          <div class="shots">${c.steps.map(s => `
+            <div class="shot ${s.ok?'':'fail'}" title="${esc(s.texts.join(' | '))}">
+              ${s.png ? `<a href="${esc(s.png)}" target="_blank"><img loading="lazy" src="${esc(s.png)}" alt="${esc(s.label)}"></a>`
+                      : `<div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--breaking);font-size:12px;padding:8px;text-align:center">capture failed</div>`}
+              <div class="cap"><b>${String(s.number).padStart(2,'0')} ${esc(s.label)}</b>
+                ${s.error ? `<div class="tg" style="color:var(--breaking)">${esc(s.error)}</div>` : ''}
+                ${s.toggles.length ? `<div class="tg">${s.toggles.map(t =>
+                   `<span class="${t.checked?'on':'off'}">${t.checked?'●':'○'} ${esc(t.label)}</span>`).join('<br>')}</div>` : ''}
+              </div></div>`).join('')}</div>
+          ${c.channels && c.channels.channels.length ? `<table style="margin-top:6px"><thead><tr><th>OS channel</th><th>id</th><th>Importance</th></tr></thead>
+            <tbody>${c.channels.channels.map(ch=>`<tr><td>${esc(ch.name)}</td><td><code class="k">${esc(ch.id)}</code></td>
+              <td style="color:${ch.blocked?'var(--breaking)':'inherit'}">${esc(ch.importance_label)}</td></tr>`).join('')}</tbody></table>` : ''}
+        </div></details>`).join('')}
+    ${o.notes.map(n => `<div class="note" data-id="${n.id}">
+        <button class="x" data-del="${n.id}" title="delete">✕</button>
+        <div class="m">${esc(n.ts)}${n.ref?` · <a href="/observations/${esc(n.ref)}" target="_blank">${esc(n.ref)}</a>`:''}${n.author?' · '+esc(n.author):''}</div>
+        <p>${esc(n.note)}</p></div>`).join('')}
+  </div>`).join('') : `<div class="card"><div class="empty">
+    <p>No captures or notes yet.</p>
+    <p>When the emulator is up: <code>python observe.py --package &lt;app-package-id&gt; --session "first install" --launch --step first-launch</code></p>
+    <p class="muted">Then work through your own observation checklist step by step, or add a note above.</p></div></div>`}`;
+
+  if(window.STATIC_BASE) return; // read-only demo: no write wiring
+  $('#addnote').onsubmit = async e => {
+    e.preventDefault();
+    const body = {outlet: $('#n-outlet').value.trim(), note: $('#n-note').value.trim(),
+                  ref: $('#n-ref').value.trim() || null};
+    const r = await fetch('/api/observations', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if(!r.ok){ alert('could not save note: ' + r.status); return; }
+    render();
+  };
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if(!confirm('Delete this note?')) return;
+    await fetch('/api/observations/' + b.dataset.del, {method:'DELETE'});
+    render();
+  });
+}
+
+/* ---------- view 8: nightly recap ---------- */
+async function renderRecap(el){
+  const d = await get('/api/recap');
+  el.innerHTML = `
+  <div class="card">
+    <h2>${esc(d.title)}${d.contains_synthetic ? ' <span class="chip syn">sample, synthetic data</span>' : ''}</h2>
+    <p class="note">The no-LLM statistical digest <code class="k">recap.py</code> delivers every night
+      (<code class="k">python recap.py --no-llm</code>) — the same numbers as the live views above,
+      formatted for a push notification or email. With an API key configured, a narrative
+      write-up from an LLM is prepended above this digest; this demo shows the digest alone
+      so it needs no key.</p>
+    <pre style="white-space:pre-wrap;font:12.5px/1.6 'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+                background:var(--rail);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;
+                color:var(--ink);margin:0">${esc(d.body)}</pre>
+  </div>`;
+}
+
+/* ---------- router ---------- */
+const RENDER = {timeline: renderTimeline, race: renderRace, volume: renderVolume,
+                copy: renderCopy, setup: renderSetup, monitoring: renderMonitoring,
+                observations: renderObservations, recap: renderRecap};
+
+async function render(){
+  const el = $('#v-' + VIEW);
+  el.innerHTML = '<div class="card"><div class="empty">loading…</div></div>';
+  try { await RENDER[VIEW](el); }
+  catch(e){ el.innerHTML = `<div class="card"><div class="empty">
+    <p>Could not load this view.</p><p class="muted">${esc(e.message)}</p></div></div>`; }
+}
+
+async function boot(){
+  try{
+    META = await get('/api/meta');
+  }catch(e){
+    $('#sub').textContent = 'Cannot reach the API — is the server running?';
+    return;
+  }
+  demoPill(META);
+  const s = META.stats;
+  $('#sub').innerHTML = s.alerts
+    ? `${s.alerts.toLocaleString()} alerts · ${s.outlets} outlets · ${(s.first||'').slice(0,10)} → ${(s.last||'').slice(0,10)}`
+    : 'No alerts captured yet. Start with <code class="k">python capture.py</code>, or seed a demo with <code class="k">python demo/build_dataset.py</code>.';
+  $('#count').textContent = s.alerts ? '' : 'empty database';
+  $('#strapline').textContent = `STRIP CHART · ${s.outlets || 0} OUTLETS · LOCAL TIME`;
+  try{ MONITORING = await get('/api/monitoring'); }catch(e){ MONITORING = null; }
+  renderLamp();
+  render();
+}
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  VIEW = b.dataset.v;
+  $('#v-' + VIEW).classList.add('on');
+  render();
+});
+$('#days').onchange = render;
+$('#realonly').onchange = render;
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+Current Notification Manager state (see also "dumpsys activity notification"):
+  Notification List:
+    NotificationRecord(0x9f1a2b3: pkg=com.cnn.mobile.android.phone user=0 id=1013 tag=null importance=4 key=0|com.cnn.mobile.android.phone|1013|null|10234: Notification(channel=breaking_news shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x8 color=0xffcc0000 vis=PUBLIC))
+      uid=10234 userId=0
+      opPkg=com.cnn.mobile.android.phone
+      icon=Icon(typ=RESOURCE pkg=com.cnn.mobile.android.phone id=0x7f080123)
+      flags=0x8
+      pri=1
+      key=0|com.cnn.mobile.android.phone|1013|null|10234
+      seen=false
+      groupKey=0|com.cnn.mobile.android.phone|g:breaking
+      sortKey=
+      category=null
+      channel=NotificationChannel{mId='breaking_news', mName=Breaking News, mImportance=4, mBypassDnd=false}
+      contentIntent=PendingIntent{a1b2c3: PendingIntentRecord{d4e5f6 com.cnn.mobile.android.phone broadcastIntent}}
+      deleteIntent=null
+      postTime=1756825200000
+      mCreationTimeMs=1756825200114
+      mUpdateTimeMs=1756825200114
+      Notification.extras={
+        android.title=String (Supreme Court rules on tariff case)
+        android.text=String (The 6-3 decision limits presidential authority over emergency trade powers.)
+        android.subText=null
+        android.showChronometer=Boolean (false)
+        android.appInfo=ApplicationInfo (ApplicationInfo{a1b2c3 com.cnn.mobile.android.phone})
+      }
+      mIsInterruptive=true
+      mImportance=IMPORTANCE_HIGH
+
+    NotificationRecord(0x7c4d5e6: pkg=com.abc.abcnews user=0 id=42 tag=breaking importance=4 key=0|com.abc.abcnews|42|breaking|10241: Notification(channel=news_alerts shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x8 color=0xff000000 vis=PUBLIC))
+      uid=10241 userId=0
+      opPkg=com.abc.abcnews
+      icon=Icon(typ=RESOURCE pkg=com.abc.abcnews id=0x7f0800aa)
+      flags=0x8
+      pri=1
+      key=0|com.abc.abcnews|42|breaking|10241
+      seen=false
+      groupKey=0|com.abc.abcnews|g:alerts
+      category=null
+      channel=NotificationChannel{mId='news_alerts', mName=Breaking News Alerts, mImportance=4}
+      postTime=1756825020000
+      mCreationTimeMs=1756825020337
+      Notification.extras={
+        android.title=String (BREAKING: Supreme Court strikes down emergency tariffs)
+        android.text=String (Justices rule 6-3 that the president exceeded authority under IEEPA.)
+        android.bigText=String (Justices rule 6-3 that the president exceeded authority under IEEPA.
+The decision unwinds duties collected since February and sets up a refund fight.)
+        android.template=String (android.app.Notification$BigTextStyle)
+        android.appInfo=ApplicationInfo (ApplicationInfo{7c4d5e6 com.abc.abcnews})
+      }
+      mIsInterruptive=true
+
+    NotificationRecord(0x3a9b8c7: pkg=com.nytimes.android user=0 id=7 tag=null importance=3 key=0|com.nytimes.android|7|null|10250: Notification(channel=Breaking%20News shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x10 color=0x00000000 vis=PRIVATE))
+      uid=10250 userId=0
+      opPkg=com.nytimes.android
+      flags=0x10
+      pri=0
+      key=0|com.nytimes.android|7|null|10250
+      seen=true
+      category=null
+      channel=NotificationChannel{mId='Breaking%20News', mName=Breaking News, mImportance=3}
+      postTime=1756825380000
+      mCreationTimeMs=1756825380902
+      Notification.extras={
+        android.title=String (Supreme Court Rejects Trump's Emergency Tariffs)
+        android.text=String (Read more at nytimes.com)
+        android.subText=String (Breaking News)
+        android.appInfo=ApplicationInfo (ApplicationInfo{3a9b8c7 com.nytimes.android})
+      }
+      mIsInterruptive=false
+
+    NotificationRecord(0x5d5d5d5: pkg=com.theathletic user=0 id=900 tag=promo importance=2 key=0|com.theathletic|900|promo|10262: Notification(channel=marketing shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x10 color=0x00000000 vis=PRIVATE))
+      uid=10262 userId=0
+      opPkg=com.theathletic
+      pri=-1
+      key=0|com.theathletic|900|promo|10262
+      category=promo
+      channel=NotificationChannel{mId='marketing', mName=Offers, mImportance=2}
+      postTime=1756803600000
+      mCreationTimeMs=1756803600512
+      Notification.extras={
+        android.title=String (⚡ Last chance: 1 year for $1)
+        android.text=String (Your trial ends tonight — keep unlimited access. https://theathletic.com/offer)
+        android.appInfo=ApplicationInfo (ApplicationInfo{5d5d5d5 com.theathletic})
+      }
+      mIsInterruptive=false
+
+  Historical Notifications:
+    NotificationRecord(0x1111111: pkg=com.foxnews.android user=0 id=55 tag=null importance=4 key=0|com.foxnews.android|55|null|10277: Notification(channel=breaking shortcut=null contentView=null vibrate=null sound=null defaults=0x0 flags=0x8 color=0xff003366 vis=PUBLIC))
+      uid=10277 userId=0
+      opPkg=com.foxnews.android
+      key=0|com.foxnews.android|55|null|10277
+      category=null
+      channel=NotificationChannel{mId='breaking', mName=Breaking News, mImportance=4}
+      postTime=1756825140000
+      mCreationTimeMs=1756825140044
+      Notification.extras={
+        android.title=String (SCOTUS DEALS BLOW TO TARIFF PLAN)
+        android.text=String (High court rules 6-3 against emergency trade authority)
+        android.appInfo=ApplicationInfo (ApplicationInfo{1111111 com.foxnews.android})
+      }
+
+  mUseAttentionLight=true
+  mHasLight=true
+  Notification enqueue rate: 0.13

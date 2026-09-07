@@ -1,0 +1,6 @@
+Current Notification Manager state (see also "dumpsys activity notification"):
+  Notification List:
+
+  mUseAttentionLight=true
+  mHasLight=true
+  Notification enqueue rate: 0.00

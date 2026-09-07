@@ -1,0 +1,19 @@
+# Push Observatory
+#
+# capture.py, parser.py, cluster.py, copy_analysis.py, seed_demo.py and
+# enrich.py use the standard library ONLY. That is deliberate: the capture
+# loop is the part that must keep running unattended for weeks, and it should
+# not be able to break because of a dependency upgrade.
+#
+# Dependencies below are needed only for the dashboard and the nightly recap.
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# recap.py talks to MiniMax through its Anthropic-compatible endpoint, so the
+# anthropic SDK is the client. Optional: recap.py degrades to a no-LLM digest
+# if this is missing or MINIMAX_API_KEY is unset.
+anthropic>=0.40
+
+# tests
+pytest>=8.0

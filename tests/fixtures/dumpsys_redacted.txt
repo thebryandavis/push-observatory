@@ -1,0 +1,12 @@
+Current Notification Manager state (see also "dumpsys activity notification"):
+  Notification List:
+    NotificationRecord(0xaaaa: pkg=com.cnn.mobile.android.phone user=0 id=1 tag=null importance=4 key=0|com.cnn.mobile.android.phone|1|null|10234: Notification(channel=breaking_news vis=PUBLIC))
+      uid=10234 userId=0
+      opPkg=com.cnn.mobile.android.phone
+      key=0|com.cnn.mobile.android.phone|1|null|10234
+      postTime=1756825200000
+      Notification.extras={
+        android.title=String (34 chars)
+        android.text=String (72 chars)
+        android.appInfo=ApplicationInfo (ApplicationInfo{aaaa com.cnn.mobile.android.phone})
+      }

@@ -1,0 +1,28 @@
+# Local data and secrets. The repo-root .gitignore also covers *.db and .env;
+# this file adds the artefacts specific to this project.
+alerts.db
+alerts.db-wal
+alerts.db-shm
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# Raw dumpsys archives from `capture.py --save-raw`. These contain the full
+# text of every push alert on the device, which the brief explicitly says not
+# to publish -- publish the analysis, not the corpus.
+raw/
+logs/
+
+# Android build output
+com.example.pushlistener/build/
+com.example.pushlistener/app/build/
+com.example.pushlistener/.gradle/
+com.example.pushlistener/local.properties
+*.apk
+
+# Observation captures (screenshots + UI dumps of third-party apps). The
+# folder is kept so the dashboard's Observations tab has somewhere to look;
+# the captures themselves are local research material, not for the repo.
+observations/*
+!observations/.gitkeep

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Push Observatory: keep the emulator running across reboots.
+
+  TEMPLATE. Replace __AVD_NAME__ and __HOME__ before installing.
+
+  Install this LAST, and only after you have booted the AVD by hand at least
+  once, signed into Google, and installed the apps. A headless relaunch of an
+  AVD that has never completed first-run setup will just sit at a setup screen
+  receiving no pushes.
+
+  -no-snapshot-load is deliberate: restoring a snapshot can restore a stale
+  network state in which FCM never reconnects, and an emulator that is running
+  but not receiving pushes is the worst failure mode here, because it looks
+  healthy.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pushobs.emulator</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/Library/Android/sdk/emulator/emulator</string>
+        <string>-avd</string>
+        <string>__AVD_NAME__</string>
+        <string>-no-audio</string>
+        <string>-no-boot-anim</string>
+        <string>-no-snapshot-load</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>120</integer>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/Library/Logs/pushobs-emulator.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/Library/Logs/pushobs-emulator.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>ANDROID_SDK_ROOT</key>
+        <string>__HOME__/Library/Android/sdk</string>
+        <key>ANDROID_AVD_HOME</key>
+        <string>__HOME__/.android/avd</string>
+    </dict>
+</dict>
+</plist>

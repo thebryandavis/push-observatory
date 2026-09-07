@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Push Observatory: the 9pm nightly recap.
+
+  TEMPLATE. Replace __PROJECT_DIR__ before installing.
+
+  Runs cluster.py first (so the recap sees fresh clusters), then recap.py.
+  StartCalendarInterval fires at 21:00 local. If the Mac is asleep at 21:00,
+  launchd runs the job when it next wakes -- which is the behaviour you want
+  for a daily digest.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pushobs.recap</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>cd __PROJECT_DIR__ &amp;&amp; ./.venv/bin/python cluster.py &amp;&amp; ./.venv/bin/python enrich.py ; ./.venv/bin/python recap.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>__PROJECT_DIR__</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>21</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>__PROJECT_DIR__/logs/recap.log</string>
+    <key>StandardErrorPath</key>
+    <string>__PROJECT_DIR__/logs/recap.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    </dict>
+</dict>
+</plist>

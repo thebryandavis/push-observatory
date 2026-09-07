@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Push Observatory: the capture loop.
+
+  TEMPLATE. Replace __PROJECT_DIR__ with the absolute path to
+  projects/push-observatory before installing. See launchd/README.md.
+
+  KeepAlive is unconditional: capture.py already handles adb being absent and
+  the emulator being down, so if the process dies at all, something is badly
+  wrong and it should come straight back.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pushobs.capture</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__PROJECT_DIR__/.venv/bin/python</string>
+        <string>__PROJECT_DIR__/capture.py</string>
+        <string>--interval</string>
+        <string>30</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>__PROJECT_DIR__</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Do not respawn faster than once every 30s if it is crash-looping. -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>StandardOutPath</key>
+    <string>__PROJECT_DIR__/logs/capture.log</string>
+    <key>StandardErrorPath</key>
+    <string>__PROJECT_DIR__/logs/capture.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- launchd jobs get a minimal PATH; adb must be reachable. -->
+        <key>PATH</key>
+        <string>__HOME__/Library/Android/sdk/platform-tools:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>ANDROID_SDK_ROOT</key>
+        <string>__HOME__/Library/Android/sdk</string>
+    </dict>
+</dict>
+</plist>

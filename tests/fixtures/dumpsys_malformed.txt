@@ -1,0 +1,32 @@
+Current Notification Manager state (see also "dumpsys activity notification"):
+  Notification List:
+    NotificationRecord(0xdead: user=0 id=1 tag=null importance=4)
+      this record has no pkg= at all and must be skipped
+      postTime=1756825200000
+
+    NotificationRecord(0xbeef: pkg=com.example.brokenapp user=0 id=2 tag=null importance=3 key=0|com.example.brokenapp|2|null|10999:
+      uid=10999 userId=0
+      postTime=notanumber
+      Notification.extras={
+        android.title=String (Unterminated value that never closes its paren
+      }
+
+    NotificationRecord(0xcafe: pkg=com.apnews user=0 id=3 tag=null importance=4 key=0|com.apnews|3|null|10300: Notification(channel=top vis=PUBLIC))
+      uid=10300 userId=0
+      opPkg=com.apnews
+      key=0|com.apnews|3|null|10300
+      postTime=1756825080000
+      Notification.extras={
+        android.title=String (Court rules against emergency tariffs)
+        android.text=String (Decision is 6-3)
+      }
+
+    NotificationRecord(0x0000: pkg=com.android.systemui user=0 id=4 tag=null importance=1 key=0|com.android.systemui|4|null|10001: Notification(channel=battery vis=PUBLIC))
+      uid=10001 userId=0
+      opPkg=com.android.systemui
+      postTime=0
+      when=0
+      Notification.extras={
+        android.title=null
+        android.text=null
+      }

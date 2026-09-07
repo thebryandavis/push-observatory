@@ -1,0 +1,1 @@
+{"focus": null, "enabled": false, "message": "Set FOCUS_OUTLET to compare one outlet against the field.", "outlets_active": 18, "total_alerts": 936, "days": 7, "contains_synthetic": true, "note": "Computed by recap.gather_window / recap.focus_summary -- the same code path as the nightly recap's focus section."}
